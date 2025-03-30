@@ -16,18 +16,20 @@ def load_bot_prompt():
 def chat():
     data = request.json
     message = data.get("message", "")
-
     system_prompt = load_bot_prompt()
 
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": message}
-        ]
-    )
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": message}
+            ]
+        )
+        reply = response['choices'][0]['message']['content']
+    except Exception as e:
+        reply = f"Đã xảy ra lỗi khi xử lý yêu cầu: {e}"
 
-    reply = response['choices'][0]['message']['content']
     return jsonify({"reply": reply})
 
 if __name__ == '__main__':
