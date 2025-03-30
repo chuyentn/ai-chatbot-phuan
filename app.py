@@ -5,24 +5,29 @@ import openai
 app = Flask(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+def load_bot_prompt():
+    try:
+        with open("bot_prompt_phuan_mua_cay_rung_dam_go.txt", "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception as e:
+        return "Bạn là nhân viên tư vấn chuyên nghiệp về thu mua cây rừng."
+
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.json
     message = data.get("message", "")
 
-    if "tràm" in message.lower():
-        reply = (
-            "Xin chào Quý khách hàng! Bên chúng tôi có dịch vụ thu mua cây tràm. "
-            "Để thuận tiện cho việc báo giá, xin Quý khách vui lòng cung cấp thêm một số thông tin sau:\n"
-            "1. Số lượng cây tràm muốn bán.\n"
-            "2. Đường kính và chiều cao tương đối của cây.\n"
-            "3. Trạng thái sức khỏe của cây: có hiện tượng sâu bệnh hay không.\n"
-            "Sau khi nhận được thông tin, chúng tôi sẽ kiểm tra và báo giá trong thời gian sớm nhất. "
-            "Chân thành BIẾT ƠN!"
-        )
-    else:
-        reply = "Xin chào! Vui lòng cung cấp thêm thông tin để chúng tôi hỗ trợ tốt hơn."
+    system_prompt = load_bot_prompt()
 
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": message}
+        ]
+    )
+
+    reply = response['choices'][0]['message']['content']
     return jsonify({"reply": reply})
 
 if __name__ == '__main__':
